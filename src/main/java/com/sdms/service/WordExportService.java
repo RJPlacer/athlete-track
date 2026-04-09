@@ -101,6 +101,7 @@ public final class WordExportService {
         margin.setBottom(BigInteger.valueOf(inchesToTwips(0.2)));
         margin.setLeft(BigInteger.valueOf(inchesToTwips(0.2)));
         margin.setRight(BigInteger.valueOf(inchesToTwips(0.2)));
+        margin.setHeader(BigInteger.ZERO);
         margin.setFooter(BigInteger.ZERO);
     }
 
@@ -119,11 +120,13 @@ public final class WordExportService {
             imageParagraph = header.getParagraphArray(0);
         }
         imageParagraph.setAlignment(ParagraphAlignment.CENTER);
-        imageParagraph.setSpacingAfter(120);
+        imageParagraph.setSpacingBefore(0);
+        imageParagraph.setSpacingAfter(0);
         addImageRun(imageParagraph, "/images/kagawaran-ng-edukasyon-logo.png", "kagawaran-ng-edukasyon-logo.png", 0.83, 0.83);
 
         XWPFParagraph text = header.createParagraph();
         text.setAlignment(ParagraphAlignment.CENTER);
+        text.setSpacingBefore(0);
         text.setSpacingAfter(0);
 
         XWPFRun runScript = text.createRun();
@@ -144,10 +147,12 @@ public final class WordExportService {
 
         XWPFParagraph line1 = header.createParagraph();
         setParagraphBottomBorder(line1, HEAVY_LINE_SIZE);
+        line1.setSpacingBefore(0);
         line1.setSpacingAfter(0);
 
         XWPFParagraph line2 = header.createParagraph();
         setParagraphBottomBorder(line2, HEAVY_LINE_SIZE);
+        line2.setSpacingBefore(0);
         line2.setSpacingAfter(0);
     }
 
@@ -168,7 +173,7 @@ public final class WordExportService {
     private static void addBorrowerInfoTable(XWPFDocument doc, Equipment e) {
         XWPFTable infoTable = doc.createTable(2, 3);
         configureFixedTableLayout(infoTable, INFO_TABLE_WIDTHS);
-        infoTable.setTableAlignment(TableRowAlign.CENTER);
+        infoTable.setTableAlignment(TableRowAlign.LEFT);
 
         fillInfoCell(infoTable.getRow(0).getCell(0), "Name:", e.getBorrowerName());
         fillInfoCell(infoTable.getRow(0).getCell(1), "Designation:", e.getDesignation());
@@ -206,6 +211,7 @@ public final class WordExportService {
     private static void addItemsTable(XWPFDocument doc, List<Equipment.EquipmentItem> items) {
         XWPFTable table = doc.createTable(1, 6);
         configureFixedTableLayout(table, EQUIPMENT_TABLE_WIDTHS);
+        table.setTableAlignment(TableRowAlign.LEFT);
 
         String[] headers = {
                 "QTY",
@@ -273,7 +279,7 @@ public final class WordExportService {
     private static void addAcknowledgementIssuedRemarksTable(XWPFDocument doc, Equipment e) {
         XWPFTable table = doc.createTable(4, 2);
         configureFixedTableLayout(table, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
-        table.setTableAlignment(TableRowAlign.CENTER);
+        table.setTableAlignment(TableRowAlign.LEFT);
 
         XWPFTableRow ackRow = table.getRow(0);
         XWPFTableCell ackCell = ackRow.getCell(0);
@@ -399,10 +405,12 @@ public final class WordExportService {
             firstLine = footerContainer.getParagraphArray(0);
         }
         setParagraphTopBorder(firstLine, HEAVY_LINE_SIZE);
+        firstLine.setSpacingBefore(0);
         firstLine.setSpacingAfter(0);
 
         XWPFParagraph secondLine = footerContainer.createParagraph();
         setParagraphTopBorder(secondLine, HEAVY_LINE_SIZE);
+        secondLine.setSpacingBefore(0);
         secondLine.setSpacingAfter(0);
 
         XWPFTable footer = footerContainer.createTable(1, 2);
@@ -422,6 +430,8 @@ public final class WordExportService {
         XWPFParagraph logos = logosCell.addParagraph();
         logos.setAlignment(ParagraphAlignment.LEFT);
         logos.setVerticalAlignment(TextAlignment.TOP);
+        logos.setSpacingBefore(0);
+        logos.setSpacingAfter(0);
 
         addImageRun(logos, "/images/DepED-logo.png", "DepED-logo.png", 1.02, 0.66);
         addSpacer(logos, " ");
@@ -436,6 +446,8 @@ public final class WordExportService {
         XWPFParagraph address = textCell.addParagraph();
         address.setAlignment(ParagraphAlignment.LEFT);
         address.setVerticalAlignment(TextAlignment.TOP);
+        address.setSpacingBefore(0);
+        address.setSpacingAfter(0);
 
         XWPFRun aLabel = address.createRun();
         aLabel.setFontFamily(FONT_BODY);
@@ -526,6 +538,12 @@ public final class WordExportService {
         }
         tblPr.getTblW().setType(STTblWidth.DXA);
         tblPr.getTblW().setW(BigInteger.valueOf(total));
+
+        if (!tblPr.isSetTblInd()) {
+            tblPr.addNewTblInd();
+        }
+        tblPr.getTblInd().setType(STTblWidth.DXA);
+        tblPr.getTblInd().setW(BigInteger.ZERO);
 
         CTTblLayoutType layout = tblPr.isSetTblLayout() ? tblPr.getTblLayout() : tblPr.addNewTblLayout();
         layout.setType(STTblLayoutType.FIXED);
