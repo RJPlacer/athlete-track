@@ -3,9 +3,8 @@ package com.sdms.controller;
 import com.sdms.model.Equipment;
 import com.sdms.service.DatabaseService;
 import com.sdms.service.PDFExportService;
-import com.sdms.util.SessionManager;
+import com.sdms.service.WordExportService;
 import javafx.collections.FXCollections;
-import com.sdms.util.SessionManager;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -94,6 +93,16 @@ public class EquipmentController {
             String path = PDFExportService.exportEquipmentReport(sel);
             Desktop.getDesktop().open(new File(path));
         } catch (Exception e) { showError("Export failed: " + e.getMessage()); }
+    }
+
+    @FXML private void onExportWord() {
+        Equipment sel = equipmentTable.getSelectionModel().getSelectedItem();
+        if (sel == null) { showInfo("Select a record first."); return; }
+        try {
+            sel.setItems(DatabaseService.getInstance().getEquipmentItems(sel.getId()));
+            String path = WordExportService.exportEquipmentMemorandum(sel);
+            Desktop.getDesktop().open(new File(path));
+        } catch (Exception e) { showError("Word export failed: " + e.getMessage()); }
     }
 
     private void openForm(Equipment equipment) {
