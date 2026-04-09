@@ -20,7 +20,7 @@ Verification commands:
   - src/main/resources/images/app-logo.ico
 - Confirm launcher class is AppLauncher in packaging settings
 - Confirm shaded JAR builds:
-  - target/sports-delegation-ms-1.0-SNAPSHOT-shaded.jar
+  - target/sports-delegation-ms-1.0-SNAPSHOT.jar
 
 ## 3. Build Installer
 

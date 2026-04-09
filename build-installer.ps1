@@ -4,7 +4,7 @@ param(
     [string]$Vendor = "Reniel John H. Placer (BSU)",
     [string]$Description = "Athlete Track - Sports Delegation Management System",
     [string]$Copyright = "Copyright 2026 Reniel John H. Placer (BSU)",
-    [string]$MainJar = "sports-delegation-ms-1.0-SNAPSHOT-shaded.jar",
+    [string]$MainJar = "sports-delegation-ms-1.0-SNAPSHOT.jar",
     [string]$MainClass = "com.sdms.AppLauncher",
     [string]$IconPath = "src/main/resources/images/app-logo.ico",
     [string]$OutputDir = "dist",
