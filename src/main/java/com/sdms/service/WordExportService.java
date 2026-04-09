@@ -17,6 +17,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageMar;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSpacing;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPBdr;
@@ -27,6 +28,7 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblLayoutType;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STPageOrientation;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STLineSpacingRule;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblLayoutType;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHdrFtr;
@@ -48,9 +50,10 @@ public final class WordExportService {
     private static final String FONT_HEADER_SANS = "Tahoma";
     private static final int TWIPS_PER_INCH = 1440;
     private static final int EMU_PER_INCH = 914400;
-    private static final int[] EQUIPMENT_TABLE_WIDTHS = {800, 800, 4300, 1700, 1700, 1700};
-    private static final int[] INFO_TABLE_WIDTHS = {3667, 3667, 3666};
-    private static final int EQUIPMENT_TABLE_TOTAL_WIDTH = 11000;
+    // A4 width (11906 twips) - left/right margins (0.2in each = 288 twips each) = 11330 twips
+    private static final int EQUIPMENT_TABLE_TOTAL_WIDTH = 11330;
+    private static final int[] EQUIPMENT_TABLE_WIDTHS = {850, 850, 4430, 1733, 1733, 1734};
+    private static final int[] INFO_TABLE_WIDTHS = {3777, 3777, 3776};
     private static final int HEAVY_LINE_SIZE = 24;
 
     private WordExportService() {}
@@ -101,8 +104,8 @@ public final class WordExportService {
         margin.setBottom(BigInteger.valueOf(inchesToTwips(0.2)));
         margin.setLeft(BigInteger.valueOf(inchesToTwips(0.2)));
         margin.setRight(BigInteger.valueOf(inchesToTwips(0.2)));
-        margin.setHeader(BigInteger.ZERO);
-        margin.setFooter(BigInteger.ZERO);
+        margin.setHeader(BigInteger.valueOf(inchesToTwips(0.05)));
+        margin.setFooter(BigInteger.valueOf(inchesToTwips(0.05)));
     }
 
     private static void addHeaderSection(XWPFDocument doc) {
@@ -147,18 +150,17 @@ public final class WordExportService {
 
         XWPFParagraph line1 = header.createParagraph();
         setParagraphBottomBorder(line1, HEAVY_LINE_SIZE);
-        line1.setSpacingBefore(0);
-        line1.setSpacingAfter(0);
+        zeroSpacing(line1);
 
         XWPFParagraph line2 = header.createParagraph();
         setParagraphBottomBorder(line2, HEAVY_LINE_SIZE);
-        line2.setSpacingBefore(0);
-        line2.setSpacingAfter(0);
+        zeroSpacing(line2);
     }
 
     private static void addCenteredTitle(XWPFDocument doc, String line1, String line2) {
         XWPFParagraph p = doc.createParagraph();
         p.setAlignment(ParagraphAlignment.CENTER);
+        p.setSpacingBefore(180);
         p.setSpacingAfter(160);
 
         XWPFRun run = p.createRun();
@@ -173,7 +175,7 @@ public final class WordExportService {
     private static void addBorrowerInfoTable(XWPFDocument doc, Equipment e) {
         XWPFTable infoTable = doc.createTable(2, 3);
         configureFixedTableLayout(infoTable, INFO_TABLE_WIDTHS);
-        infoTable.setTableAlignment(TableRowAlign.LEFT);
+        infoTable.setTableAlignment(TableRowAlign.CENTER);
 
         fillInfoCell(infoTable.getRow(0).getCell(0), "Name:", e.getBorrowerName());
         fillInfoCell(infoTable.getRow(0).getCell(1), "Designation:", e.getDesignation());
@@ -211,7 +213,7 @@ public final class WordExportService {
     private static void addItemsTable(XWPFDocument doc, List<Equipment.EquipmentItem> items) {
         XWPFTable table = doc.createTable(1, 6);
         configureFixedTableLayout(table, EQUIPMENT_TABLE_WIDTHS);
-        table.setTableAlignment(TableRowAlign.LEFT);
+        table.setTableAlignment(TableRowAlign.CENTER);
 
         String[] headers = {
                 "QTY",
@@ -279,7 +281,7 @@ public final class WordExportService {
     private static void addAcknowledgementIssuedRemarksTable(XWPFDocument doc, Equipment e) {
         XWPFTable table = doc.createTable(4, 2);
         configureFixedTableLayout(table, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
-        table.setTableAlignment(TableRowAlign.LEFT);
+        table.setTableAlignment(TableRowAlign.CENTER);
 
         XWPFTableRow ackRow = table.getRow(0);
         XWPFTableCell ackCell = ackRow.getCell(0);
@@ -405,13 +407,11 @@ public final class WordExportService {
             firstLine = footerContainer.getParagraphArray(0);
         }
         setParagraphTopBorder(firstLine, HEAVY_LINE_SIZE);
-        firstLine.setSpacingBefore(0);
-        firstLine.setSpacingAfter(0);
+        zeroSpacing(firstLine);
 
         XWPFParagraph secondLine = footerContainer.createParagraph();
         setParagraphTopBorder(secondLine, HEAVY_LINE_SIZE);
-        secondLine.setSpacingBefore(0);
-        secondLine.setSpacingAfter(0);
+        zeroSpacing(secondLine);
 
         XWPFTable footer = footerContainer.createTable(1, 2);
         footer.setWidth("100%");
@@ -440,7 +440,7 @@ public final class WordExportService {
         addImageRun(logos, "/images/SDO-Seal.png", "SDO-Seal.png", 0.68, 0.66);
 
         XWPFTableCell textCell = footer.getRow(0).getCell(1);
-        setCellWidth(textCell, 7100);
+        setCellWidth(textCell, 7130);
         textCell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.TOP);
         textCell.removeParagraph(0);
         XWPFParagraph address = textCell.addParagraph();
@@ -596,6 +596,21 @@ public final class WordExportService {
         top.setSz(BigInteger.valueOf(size));
         top.setColor("000000");
         top.setSpace(BigInteger.ZERO);
+    }
+
+    private static void zeroSpacing(XWPFParagraph p) {
+        CTPPr pPr = p.getCTP().isSetPPr() ? p.getCTP().getPPr() : p.getCTP().addNewPPr();
+
+        CTSpacing spacing = pPr.isSetSpacing() ? pPr.getSpacing() : pPr.addNewSpacing();
+        spacing.setBefore(BigInteger.ZERO);
+        spacing.setAfter(BigInteger.ZERO);
+        spacing.setLine(BigInteger.valueOf(1));
+        spacing.setLineRule(STLineSpacingRule.EXACT);
+
+        if (!pPr.isSetContextualSpacing()) {
+            pPr.addNewContextualSpacing();
+        }
+        pPr.getContextualSpacing().setVal(true);
     }
 
     private static String formatDate(Equipment e) {
