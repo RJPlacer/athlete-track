@@ -3,10 +3,10 @@ package com.sdms.service;
 import com.sdms.model.Equipment;
 import com.sdms.util.AppPaths;
 import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
-import org.apache.poi.xwpf.usermodel.Borders;
 import org.apache.poi.xwpf.usermodel.Document;
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFFooter;
+import org.apache.poi.xwpf.usermodel.XWPFHeader;
 import org.apache.poi.xwpf.usermodel.TableRowAlign;
 import org.apache.poi.xwpf.usermodel.TextAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -18,11 +18,15 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageMar;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPBdr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBorder;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTbl;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblGrid;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblLayoutType;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STPageOrientation;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblLayoutType;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHdrFtr;
@@ -46,6 +50,7 @@ public final class WordExportService {
     private static final int EMU_PER_INCH = 914400;
     private static final int[] EQUIPMENT_TABLE_WIDTHS = {800, 800, 4300, 1700, 1700, 1700};
     private static final int EQUIPMENT_TABLE_TOTAL_WIDTH = 11000;
+    private static final int HEAVY_LINE_SIZE = 24;
 
     private WordExportService() {}
 
@@ -95,12 +100,28 @@ public final class WordExportService {
         margin.setBottom(BigInteger.valueOf(inchesToTwips(0.2)));
         margin.setLeft(BigInteger.valueOf(inchesToTwips(0.2)));
         margin.setRight(BigInteger.valueOf(inchesToTwips(0.2)));
+        margin.setFooter(BigInteger.ZERO);
     }
 
     private static void addHeaderSection(XWPFDocument doc) {
-        addHeaderImage(doc, "/images/kagawaran-ng-edukasyon-logo.png", "kagawaran-ng-edukasyon-logo.png", 0.83, 0.83);
+        CTSectPr sectPr = doc.getDocument().getBody().isSetSectPr()
+            ? doc.getDocument().getBody().getSectPr()
+            : doc.getDocument().getBody().addNewSectPr();
 
-        XWPFParagraph text = doc.createParagraph();
+        XWPFHeaderFooterPolicy policy = new XWPFHeaderFooterPolicy(doc, sectPr);
+        XWPFHeader header = policy.createHeader(STHdrFtr.DEFAULT);
+
+        XWPFParagraph imageParagraph;
+        if (header.getParagraphs().isEmpty()) {
+            imageParagraph = header.createParagraph();
+        } else {
+            imageParagraph = header.getParagraphArray(0);
+        }
+        imageParagraph.setAlignment(ParagraphAlignment.CENTER);
+        imageParagraph.setSpacingAfter(120);
+        addImageRun(imageParagraph, "/images/kagawaran-ng-edukasyon-logo.png", "kagawaran-ng-edukasyon-logo.png", 0.83, 0.83);
+
+        XWPFParagraph text = header.createParagraph();
         text.setAlignment(ParagraphAlignment.CENTER);
         text.setSpacingAfter(80);
 
@@ -120,22 +141,13 @@ public final class WordExportService {
         runSans.addBreak();
         runSans.setText("SCHOOLS DIVISION OFFICE OF THE CITY OF BALIWAG");
 
-        XWPFParagraph line1 = doc.createParagraph();
-        line1.setBorderBottom(Borders.THICK);
+        XWPFParagraph line1 = header.createParagraph();
+        setParagraphBottomBorder(line1, HEAVY_LINE_SIZE);
         line1.setSpacingAfter(0);
 
-        XWPFParagraph line2 = doc.createParagraph();
-        line2.setBorderBottom(Borders.THICK);
+        XWPFParagraph line2 = header.createParagraph();
+        setParagraphBottomBorder(line2, HEAVY_LINE_SIZE);
         line2.setSpacingAfter(140);
-    }
-
-    private static void addHeaderImage(XWPFDocument doc, String resourcePath, String fileName,
-                                       double widthInches, double heightInches) {
-        XWPFParagraph p = doc.createParagraph();
-        p.setAlignment(ParagraphAlignment.CENTER);
-        p.setSpacingAfter(120);
-
-        addImageRun(p, resourcePath, fileName, widthInches, heightInches);
     }
 
     private static void addCenteredTitle(XWPFDocument doc, String line1, String line2) {
@@ -259,11 +271,12 @@ public final class WordExportService {
     }
 
     private static void addAcknowledgementIssuedRemarksTable(XWPFDocument doc, Equipment e) {
-        XWPFTable table = doc.createTable(4, 2);
-        configureFixedTableLayout(table, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
+        XWPFTable table = doc.createTable(4, 6);
+        configureFixedTableLayout(table, EQUIPMENT_TABLE_WIDTHS);
         table.setTableAlignment(TableRowAlign.CENTER);
 
         XWPFTableRow ackRow = table.getRow(0);
+        setRowWidths(ackRow, EQUIPMENT_TABLE_WIDTHS);
         XWPFTableCell ackCell = ackRow.getCell(0);
         ackCell.removeParagraph(0);
         XWPFParagraph ack = ackCell.addParagraph();
@@ -275,10 +288,12 @@ public final class WordExportService {
         ackRun.addBreak();
         ackRun.setText("equipment/supplies/item in good condition.");
         setCellWidth(ackCell, EQUIPMENT_TABLE_TOTAL_WIDTH);
-        setCellGridSpan(ackCell, 2);
-        ackRow.removeCell(1);
+        mergeCells(ackRow, 0, 5);
 
         XWPFTableRow labelRow = table.getRow(1);
+        setRowWidths(labelRow, EQUIPMENT_TABLE_WIDTHS);
+        mergeCells(labelRow, 0, 2);
+        mergeCells(labelRow, 1, 3);
         XWPFTableCell issuedByLabelCell = labelRow.getCell(0);
         issuedByLabelCell.removeParagraph(0);
         XWPFParagraph byLabel = issuedByLabelCell.addParagraph();
@@ -300,9 +315,11 @@ public final class WordExportService {
         toLabelRun.setFontFamily(FONT_BODY);
         toLabelRun.setFontSize(10);
         toLabelRun.setText("ISSUED TO:");
-        setRowWidths(labelRow, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
 
         XWPFTableRow signRow = table.getRow(2);
+        setRowWidths(signRow, EQUIPMENT_TABLE_WIDTHS);
+        mergeCells(signRow, 0, 2);
+        mergeCells(signRow, 1, 3);
         XWPFTableCell bySignCell = signRow.getCell(0);
         bySignCell.removeParagraph(0);
         XWPFParagraph byLine = bySignCell.addParagraph();
@@ -354,9 +371,9 @@ public final class WordExportService {
             toHintRun.setFontSize(9);
             toHintRun.setText("(" + ns(e.getIssuedTo()) + ")");
         }
-        setRowWidths(signRow, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
 
         XWPFTableRow remarksRow = table.getRow(3);
+        setRowWidths(remarksRow, EQUIPMENT_TABLE_WIDTHS);
         XWPFTableCell remarksCell = remarksRow.getCell(0);
         remarksCell.removeParagraph(0);
         XWPFParagraph remarks = remarksCell.addParagraph();
@@ -367,8 +384,7 @@ public final class WordExportService {
         remarksRun.setFontSize(10);
         remarksRun.setText("REMARKS: _________________________________________________");
         setCellWidth(remarksCell, EQUIPMENT_TABLE_TOTAL_WIDTH);
-        setCellGridSpan(remarksCell, 2);
-        remarksRow.removeCell(1);
+        mergeCells(remarksRow, 0, 5);
     }
 
     private static void addFooterBranding(XWPFDocument doc) {
@@ -385,11 +401,11 @@ public final class WordExportService {
         } else {
             firstLine = footerContainer.getParagraphArray(0);
         }
-        firstLine.setBorderTop(Borders.THICK);
+        setParagraphTopBorder(firstLine, HEAVY_LINE_SIZE);
         firstLine.setSpacingAfter(0);
 
         XWPFParagraph secondLine = footerContainer.createParagraph();
-        secondLine.setBorderTop(Borders.THICK);
+        setParagraphTopBorder(secondLine, HEAVY_LINE_SIZE);
         secondLine.setSpacingAfter(70);
 
         XWPFTable footer = footerContainer.createTable(1, 2);
@@ -538,6 +554,33 @@ public final class WordExportService {
             cell.getCTTc().getTcPr().addNewGridSpan();
         }
         cell.getCTTc().getTcPr().getGridSpan().setVal(BigInteger.valueOf(span));
+    }
+
+    private static void mergeCells(XWPFTableRow row, int fromCol, int toCol) {
+        setCellGridSpan(row.getCell(fromCol), toCol - fromCol + 1);
+        for (int col = toCol; col > fromCol; col--) {
+            row.removeCell(col);
+        }
+    }
+
+    private static void setParagraphBottomBorder(XWPFParagraph paragraph, int size) {
+        CTPPr pPr = paragraph.getCTP().isSetPPr() ? paragraph.getCTP().getPPr() : paragraph.getCTP().addNewPPr();
+        CTPBdr bdr = pPr.isSetPBdr() ? pPr.getPBdr() : pPr.addNewPBdr();
+        CTBorder bottom = bdr.isSetBottom() ? bdr.getBottom() : bdr.addNewBottom();
+        bottom.setVal(STBorder.SINGLE);
+        bottom.setSz(BigInteger.valueOf(size));
+        bottom.setColor("000000");
+        bottom.setSpace(BigInteger.ZERO);
+    }
+
+    private static void setParagraphTopBorder(XWPFParagraph paragraph, int size) {
+        CTPPr pPr = paragraph.getCTP().isSetPPr() ? paragraph.getCTP().getPPr() : paragraph.getCTP().addNewPPr();
+        CTPBdr bdr = pPr.isSetPBdr() ? pPr.getPBdr() : pPr.addNewPBdr();
+        CTBorder top = bdr.isSetTop() ? bdr.getTop() : bdr.addNewTop();
+        top.setVal(STBorder.SINGLE);
+        top.setSz(BigInteger.valueOf(size));
+        top.setColor("000000");
+        top.setSpace(BigInteger.ZERO);
     }
 
     private static String formatDate(Equipment e) {
