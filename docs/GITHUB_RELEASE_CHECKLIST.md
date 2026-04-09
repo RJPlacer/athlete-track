@@ -4,7 +4,7 @@ Use this checklist when publishing a release to GitHub.
 
 ## 1. Versioning
 
-1. Update version in pom.xml from snapshot to release version (example: 1.0.0).
+1. Update version in pom.xml to the release version (example: 1.0.1).
 2. Update any version labels in docs if needed.
 3. Commit version changes.
 
@@ -52,15 +52,15 @@ Recommended attachments:
 Generate checksum:
 
 ```powershell
-Get-FileHash "dist\Athlete Track-1.0.exe" -Algorithm SHA256
+Get-FileHash "dist\Athlete Track-1.0.1.exe" -Algorithm SHA256
 ```
 
 ## 6. Create GitHub Release
 
 1. Create annotated git tag:
-- git tag -a v1.0.0 -m "Athlete Track v1.0.0"
+- git tag -a v1.0.1 -m "Athlete Track v1.0.1"
 2. Push tag:
-- git push origin v1.0.0
+- git push origin v1.0.1
 3. Open GitHub Releases and draft new release from tag.
 4. Upload installer and checksum.
 5. Paste release notes.

@@ -20,7 +20,7 @@ Verification commands:
   - src/main/resources/images/app-logo.ico
 - Confirm launcher class is AppLauncher in packaging settings
 - Confirm shaded JAR builds:
-  - target/sports-delegation-ms-1.0-SNAPSHOT.jar
+  - target/sports-delegation-ms-1.0.1.jar
 
 ## 3. Build Installer
 
@@ -28,11 +28,11 @@ Recommended command:
 - ./build-installer.ps1 -CleanOutput
 
 Expected output:
-- dist/Athlete Track-1.0.exe
+- dist/Athlete Track-1.0.1.exe
 
 ## 4. Install Validation (Clean PC)
 
-1. Run dist/Athlete Track-1.0.exe.
+1. Run dist/Athlete Track-1.0.1.exe.
 2. Complete installation.
 3. Launch Athlete Track from Start menu or desktop shortcut.
 4. Verify login screen appears.
@@ -87,7 +87,7 @@ If app does not open:
 ## 10. Release Handover Package
 
 Include these files for delivery:
-- dist/Athlete Track-1.0.exe
+- dist/Athlete Track-1.0.1.exe
 - docs/USER_MANUAL.md
 - docs/DEPLOYMENT_CHECKLIST.md
 - docs/SYSTEM_DOCUMENTATION.md

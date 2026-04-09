@@ -203,7 +203,7 @@ Package shaded JAR:
 - mvn -DskipTests package
 
 Main artifact:
-- target/sports-delegation-ms-1.0-SNAPSHOT-shaded.jar
+- target/sports-delegation-ms-1.0.1.jar
 
 ## 8. Windows Installer Build
 
@@ -220,16 +220,16 @@ Examples:
 
 Current script defaults:
 - Main class: com.sdms.AppLauncher
-- Main JAR: sports-delegation-ms-1.0-SNAPSHOT-shaded.jar
+- Main JAR: sports-delegation-ms-1.0.1.jar
 - Icon path: src/main/resources/images/app-logo.ico
 - Output directory: dist
 
 Installer output:
-- dist/SDMS-1.0.exe
+- dist/Athlete Track-1.0.1.exe
 
 ### Manual jpackage command
 
-- jpackage --type exe --input target --dest dist --name SDMS --main-jar sports-delegation-ms-1.0-SNAPSHOT-shaded.jar --main-class com.sdms.AppLauncher --icon src/main/resources/images/app-logo.ico --win-menu --win-shortcut
+- jpackage --type exe --input target --dest dist --name "Athlete Track" --app-version 1.0.1 --main-jar sports-delegation-ms-1.0.1.jar --main-class com.sdms.AppLauncher --icon src/main/resources/images/app-logo.ico --win-menu --win-shortcut
 
 ## 9. Troubleshooting
 
@@ -290,6 +290,6 @@ Check writable export path:
 ## 13. Versioning Notes
 
 Current artifact version from pom.xml:
-- 1.0-SNAPSHOT
+- 1.0.1
 
-For release builds, consider changing to semantic versions (example: 1.0.0, 1.1.0).
+For future release builds, increment semantic versions (example: 1.0.2, 1.1.0).

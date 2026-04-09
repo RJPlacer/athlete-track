@@ -40,7 +40,7 @@ Current project docs:
 - Build command:
   - .\build-installer.ps1 -CleanOutput
 - Installer output:
-  - dist/Athlete Track-1.0.exe
+  - dist/Athlete Track-1.0.1.exe
 
 ## 6. Optional: Bring Your Own Certificate (BYOC)
 

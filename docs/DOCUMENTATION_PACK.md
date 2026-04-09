@@ -35,7 +35,7 @@ Recommended installer build command:
 - ./build-installer.ps1 -CleanOutput
 
 Installer output:
-- dist/SDMS-1.0.exe
+- dist/Athlete Track-1.0.1.exe
 
 ### D. First-Time Operations
 1. Install SDMS installer.

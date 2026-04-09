@@ -219,22 +219,31 @@ public final class WordExportService {
                 "QTY",
                 "UNIT",
                 "MAKE AND DESCRIPTION",
-                "DATE BORROWED",
-                "DATE RETURNED",
+            "DATE\nBORROWED",
+            "DATE\nRETURNED",
                 "REMARKS"
         };
 
         XWPFTableRow headerRow = table.getRow(0);
         for (int i = 0; i < headers.length; i++) {
             XWPFTableCell cell = headerRow.getCell(i);
+            cell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.CENTER);
             cell.removeParagraph(0);
             XWPFParagraph p = cell.addParagraph();
             p.setAlignment(ParagraphAlignment.CENTER);
+            p.setSpacingBefore(0);
+            p.setSpacingAfter(0);
             XWPFRun run = p.createRun();
             run.setBold(true);
             run.setFontFamily(FONT_BODY);
-            run.setFontSize(10);
-            run.setText(headers[i]);
+            run.setFontSize((i == 3 || i == 4) ? 8 : 10);
+            String[] headerLines = headers[i].split("\\n", -1);
+            for (int line = 0; line < headerLines.length; line++) {
+                if (line > 0) {
+                    run.addBreak();
+                }
+                run.setText(headerLines[line]);
+            }
         }
         setRowWidths(headerRow, EQUIPMENT_TABLE_WIDTHS);
 
@@ -267,6 +276,7 @@ public final class WordExportService {
     }
 
     private static void writeItemCell(XWPFTableCell cell, String text, ParagraphAlignment align) {
+        cell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.CENTER);
         cell.removeParagraph(0);
         XWPFParagraph p = cell.addParagraph();
         p.setAlignment(align);
@@ -322,16 +332,17 @@ public final class WordExportService {
         byLabelRun.setFontSize(10);
         byLabelRun.setText("ISSUED BY:");
 
-        // Blank space (no underline line)
+        // Signature underline
         XWPFParagraph byLine = byCell.addParagraph();
         byLine.setAlignment(ParagraphAlignment.CENTER);
         byLine.setSpacingBefore(120);
         byLine.setSpacingAfter(0);
         byLine.setIndentationRight(120);
         XWPFRun byLineRun = byLine.createRun();
+        byLineRun.setBold(true);
         byLineRun.setFontFamily(FONT_BODY);
         byLineRun.setFontSize(10);
-        byLineRun.setText(" ");
+        byLineRun.setText("____________________________");
 
         // Caption — tight to the underline
         XWPFParagraph byPrinted = byCell.addParagraph();
@@ -370,16 +381,17 @@ public final class WordExportService {
         toLabelRun.setFontSize(10);
         toLabelRun.setText("ISSUED TO:");
 
-        // Blank space (no underline line)
+        // Signature underline
         XWPFParagraph toLine = toCell.addParagraph();
         toLine.setAlignment(ParagraphAlignment.CENTER);
         toLine.setSpacingBefore(120);
         toLine.setSpacingAfter(0);
         toLine.setIndentationLeft(120);
         XWPFRun toLineRun = toLine.createRun();
+        toLineRun.setBold(true);
         toLineRun.setFontFamily(FONT_BODY);
         toLineRun.setFontSize(10);
-        toLineRun.setText(" ");
+        toLineRun.setText("____________________________");
 
         // Caption — tight to the underline
         XWPFParagraph toPrinted = toCell.addParagraph();
