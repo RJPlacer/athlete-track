@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.sdms.controller.QRScanController"
+      prefWidth="720" prefHeight="460" styleClass="form-root" spacing="10">
+
+    <HBox styleClass="form-header" alignment="CENTER_LEFT" spacing="12">
+        <padding><Insets top="14" bottom="14" left="20" right="20"/></padding>
+        <Label text="QR Scanner" styleClass="form-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label text="USB scanner ready" styleClass="id-badge"/>
+    </HBox>
+
+    <VBox spacing="10" style="-fx-padding: 12 20 8 20;" VBox.vgrow="ALWAYS">
+        <Label text="Place cursor in Scan Input and scan your QR code. Most scanners auto-press Enter." styleClass="hint-label"/>
+
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <Label text="Scan Input" minWidth="80"/>
+            <TextField fx:id="txtScan" HBox.hgrow="ALWAYS" onAction="#onScan" promptText="Scan QR here..."/>
+            <Button text="Scan" onAction="#onScan" styleClass="btn-primary"/>
+        </HBox>
+
+        <Label text="Raw Payload"/>
+        <TextArea fx:id="txtRaw" prefRowCount="3" wrapText="true" editable="false"/>
+
+        <GridPane hgap="10" vgap="8" style="-fx-padding: 8 0 0 0;">
+            <Label text="Module:" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+            <Label fx:id="lblModule" text="—" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+            <Label text="ID:" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+            <Label fx:id="lblId" text="—" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+            <Label text="Name:" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+            <Label fx:id="lblName" text="—" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+            <Label text="School:" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+            <Label fx:id="lblSchool" text="—" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+            <Label text="Extra:" GridPane.rowIndex="4" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+            <Label fx:id="lblExtra" text="—" GridPane.rowIndex="4" GridPane.columnIndex="1" wrapText="true"/>
+
+            <columnConstraints>
+                <ColumnConstraints minWidth="90"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
+        </GridPane>
+
+        <Label fx:id="lblStatus" text="Ready." style="-fx-text-fill: #334155; -fx-padding: 6 0 0 0;"/>
+    </VBox>
+
+    <HBox spacing="8" alignment="CENTER_RIGHT" styleClass="form-footer">
+        <padding><Insets top="10" bottom="10" left="20" right="20"/></padding>
+        <Button text="Clear" onAction="#onClear" styleClass="btn-secondary"/>
+        <Button text="Close" onAction="#onClose" styleClass="btn-secondary"/>
+    </HBox>
+</VBox>
