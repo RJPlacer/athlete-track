@@ -2,7 +2,6 @@ package com.sdms.service;
 
 import com.sdms.model.Equipment;
 import com.sdms.util.AppPaths;
-import org.apache.poi.util.Units;
 import org.apache.poi.xwpf.usermodel.Borders;
 import org.apache.poi.xwpf.usermodel.Document;
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
@@ -35,6 +34,8 @@ public final class WordExportService {
     private static final String FONT_BODY = "Bookman Old Style";
     private static final String FONT_HEADER_SCRIPT = "Old English Text MT";
     private static final String FONT_HEADER_SANS = "Tahoma";
+    private static final int TWIPS_PER_INCH = 1440;
+    private static final int EMU_PER_INCH = 914400;
 
     private WordExportService() {}
 
@@ -60,9 +61,7 @@ public final class WordExportService {
 
             addBorrowerInfoTable(doc, e);
             addItemsTable(doc, e.getItems());
-            addAcknowledgement(doc);
-            addIssuedByIssuedToTable(doc, e);
-            addRemarksBlock(doc);
+                addAcknowledgementIssuedRemarksTable(doc, e);
             addFooterBranding(doc);
 
             doc.write(os);
@@ -82,14 +81,14 @@ public final class WordExportService {
         pageSize.setOrient(STPageOrientation.PORTRAIT);
 
         CTPageMar margin = sectPr.isSetPgMar() ? sectPr.getPgMar() : sectPr.addNewPgMar();
-        margin.setTop(BigInteger.valueOf(720));
-        margin.setBottom(BigInteger.valueOf(720));
-        margin.setLeft(BigInteger.valueOf(720));
-        margin.setRight(BigInteger.valueOf(720));
+        margin.setTop(BigInteger.valueOf(inchesToTwips(0.2)));
+        margin.setBottom(BigInteger.valueOf(inchesToTwips(0.2)));
+        margin.setLeft(BigInteger.valueOf(inchesToTwips(0.2)));
+        margin.setRight(BigInteger.valueOf(inchesToTwips(0.2)));
     }
 
     private static void addHeaderSection(XWPFDocument doc) {
-        addHeaderImage(doc, "/images/kagawaran-ng-edukasyon-logo.png", "kagawaran-ng-edukasyon-logo.png", 84, 72);
+        addHeaderImage(doc, "/images/kagawaran-ng-edukasyon-logo.png", "kagawaran-ng-edukasyon-logo.png", 0.83, 0.83);
 
         XWPFParagraph text = doc.createParagraph();
         text.setAlignment(ParagraphAlignment.CENTER);
@@ -112,17 +111,17 @@ public final class WordExportService {
         runSans.setText("SCHOOLS DIVISION OFFICE OF THE CITY OF BALIWAG");
 
         XWPFParagraph line = doc.createParagraph();
-        line.setBorderBottom(Borders.THICK);
+        line.setBorderBottom(Borders.DOUBLE);
         line.setSpacingAfter(140);
     }
 
     private static void addHeaderImage(XWPFDocument doc, String resourcePath, String fileName,
-                                       int widthPx, int heightPx) {
+                                       double widthInches, double heightInches) {
         XWPFParagraph p = doc.createParagraph();
         p.setAlignment(ParagraphAlignment.CENTER);
         p.setSpacingAfter(120);
 
-        addImageRun(p, resourcePath, fileName, widthPx, heightPx);
+        addImageRun(p, resourcePath, fileName, widthInches, heightInches);
     }
 
     private static void addCenteredTitle(XWPFDocument doc, String line1, String line2) {
@@ -249,41 +248,59 @@ public final class WordExportService {
         run.setText(ns(text));
     }
 
-    private static void addAcknowledgement(XWPFDocument doc) {
-        XWPFParagraph p = doc.createParagraph();
-        p.setSpacingBefore(180);
-        p.setAlignment(ParagraphAlignment.CENTER);
+    private static void addAcknowledgementIssuedRemarksTable(XWPFDocument doc, Equipment e) {
+        XWPFTable table = doc.createTable(4, 2);
+        table.setWidth("100%");
+        table.setTableAlignment(TableRowAlign.CENTER);
 
-        XWPFRun run = p.createRun();
-        run.setFontFamily(FONT_BODY);
-        run.setFontSize(10);
-        run.setText("I acknowledge to have received this _____ day of _______________, all sports");
-        run.addBreak();
-        run.setText("equipment/supplies/item in good condition.");
-    }
+        XWPFTableRow ackRow = table.getRow(0);
+        XWPFTableCell ackCell = ackRow.getCell(0);
+        ackCell.removeParagraph(0);
+        XWPFParagraph ack = ackCell.addParagraph();
+        ack.setAlignment(ParagraphAlignment.CENTER);
+        XWPFRun ackRun = ack.createRun();
+        ackRun.setFontFamily(FONT_BODY);
+        ackRun.setFontSize(10);
+        ackRun.setText("I acknowledge to have received this _____ day of _______________, all sports");
+        ackRun.addBreak();
+        ackRun.setText("equipment/supplies/item in good condition.");
+        setCellGridSpan(ackCell, 2);
+        ackRow.removeCell(1);
 
-    private static void addIssuedByIssuedToTable(XWPFDocument doc, Equipment e) {
-        XWPFTable signTable = doc.createTable(1, 2);
-        signTable.setWidth("100%");
-
-        XWPFTableCell issuedByCell = signTable.getRow(0).getCell(0);
-        issuedByCell.removeParagraph(0);
-        XWPFParagraph byLabel = issuedByCell.addParagraph();
+        XWPFTableRow labelRow = table.getRow(1);
+        XWPFTableCell issuedByLabelCell = labelRow.getCell(0);
+        issuedByLabelCell.removeParagraph(0);
+        XWPFParagraph byLabel = issuedByLabelCell.addParagraph();
         byLabel.setAlignment(ParagraphAlignment.LEFT);
         XWPFRun byLabelRun = byLabel.createRun();
         byLabelRun.setBold(true);
+        byLabelRun.setItalic(true);
         byLabelRun.setFontFamily(FONT_BODY);
         byLabelRun.setFontSize(10);
         byLabelRun.setText("ISSUED BY:");
 
-        XWPFParagraph byName = issuedByCell.addParagraph();
-        byName.setAlignment(ParagraphAlignment.CENTER);
-        XWPFRun byNameRun = byName.createRun();
-        byNameRun.setFontFamily(FONT_BODY);
-        byNameRun.setFontSize(10);
-        byNameRun.setText("____________________________");
+        XWPFTableCell issuedToLabelCell = labelRow.getCell(1);
+        issuedToLabelCell.removeParagraph(0);
+        XWPFParagraph toLabel = issuedToLabelCell.addParagraph();
+        toLabel.setAlignment(ParagraphAlignment.LEFT);
+        XWPFRun toLabelRun = toLabel.createRun();
+        toLabelRun.setBold(true);
+        toLabelRun.setItalic(true);
+        toLabelRun.setFontFamily(FONT_BODY);
+        toLabelRun.setFontSize(10);
+        toLabelRun.setText("ISSUED TO:");
 
-        XWPFParagraph byPrinted = issuedByCell.addParagraph();
+        XWPFTableRow signRow = table.getRow(2);
+        XWPFTableCell bySignCell = signRow.getCell(0);
+        bySignCell.removeParagraph(0);
+        XWPFParagraph byLine = bySignCell.addParagraph();
+        byLine.setAlignment(ParagraphAlignment.CENTER);
+        XWPFRun byLineRun = byLine.createRun();
+        byLineRun.setFontFamily(FONT_BODY);
+        byLineRun.setFontSize(10);
+        byLineRun.setText("____________________________");
+
+        XWPFParagraph byPrinted = bySignCell.addParagraph();
         byPrinted.setAlignment(ParagraphAlignment.CENTER);
         XWPFRun byPrintedRun = byPrinted.createRun();
         byPrintedRun.setFontFamily(FONT_BODY);
@@ -291,33 +308,25 @@ public final class WordExportService {
         byPrintedRun.setText("PRINTED NAME OVER SIGNATURE / DATE");
 
         if (!ns(e.getIssuedBy()).isBlank()) {
-            XWPFParagraph byHint = issuedByCell.addParagraph();
+            XWPFParagraph byHint = bySignCell.addParagraph();
             byHint.setAlignment(ParagraphAlignment.CENTER);
-            XWPFRun hintRun = byHint.createRun();
-            hintRun.setItalic(true);
-            hintRun.setFontFamily(FONT_BODY);
-            hintRun.setFontSize(9);
-            hintRun.setText("(" + ns(e.getIssuedBy()) + ")");
+            XWPFRun byHintRun = byHint.createRun();
+            byHintRun.setItalic(true);
+            byHintRun.setFontFamily(FONT_BODY);
+            byHintRun.setFontSize(9);
+            byHintRun.setText("(" + ns(e.getIssuedBy()) + ")");
         }
 
-        XWPFTableCell issuedToCell = signTable.getRow(0).getCell(1);
-        issuedToCell.removeParagraph(0);
-        XWPFParagraph toLabel = issuedToCell.addParagraph();
-        toLabel.setAlignment(ParagraphAlignment.LEFT);
-        XWPFRun toLabelRun = toLabel.createRun();
-        toLabelRun.setBold(true);
-        toLabelRun.setFontFamily(FONT_BODY);
-        toLabelRun.setFontSize(10);
-        toLabelRun.setText("ISSUED TO:");
+        XWPFTableCell toSignCell = signRow.getCell(1);
+        toSignCell.removeParagraph(0);
+        XWPFParagraph toLine = toSignCell.addParagraph();
+        toLine.setAlignment(ParagraphAlignment.CENTER);
+        XWPFRun toLineRun = toLine.createRun();
+        toLineRun.setFontFamily(FONT_BODY);
+        toLineRun.setFontSize(10);
+        toLineRun.setText("____________________________");
 
-        XWPFParagraph toName = issuedToCell.addParagraph();
-        toName.setAlignment(ParagraphAlignment.CENTER);
-        XWPFRun toNameRun = toName.createRun();
-        toNameRun.setFontFamily(FONT_BODY);
-        toNameRun.setFontSize(10);
-        toNameRun.setText("____________________________");
-
-        XWPFParagraph toPrinted = issuedToCell.addParagraph();
+        XWPFParagraph toPrinted = toSignCell.addParagraph();
         toPrinted.setAlignment(ParagraphAlignment.CENTER);
         XWPFRun toPrintedRun = toPrinted.createRun();
         toPrintedRun.setFontFamily(FONT_BODY);
@@ -325,44 +334,33 @@ public final class WordExportService {
         toPrintedRun.setText("PRINTED NAME OVER SIGNATURE / DATE");
 
         if (!ns(e.getIssuedTo()).isBlank()) {
-            XWPFParagraph toHint = issuedToCell.addParagraph();
+            XWPFParagraph toHint = toSignCell.addParagraph();
             toHint.setAlignment(ParagraphAlignment.CENTER);
-            XWPFRun hintRun = toHint.createRun();
-            hintRun.setItalic(true);
-            hintRun.setFontFamily(FONT_BODY);
-            hintRun.setFontSize(9);
-            hintRun.setText("(" + ns(e.getIssuedTo()) + ")");
+            XWPFRun toHintRun = toHint.createRun();
+            toHintRun.setItalic(true);
+            toHintRun.setFontFamily(FONT_BODY);
+            toHintRun.setFontSize(9);
+            toHintRun.setText("(" + ns(e.getIssuedTo()) + ")");
         }
-    }
 
-    private static void addRemarksBlock(XWPFDocument doc) {
-        XWPFParagraph p = doc.createParagraph();
-        p.setSpacingBefore(100);
-        XWPFRun run = p.createRun();
-        run.setBold(true);
-        run.setFontFamily(FONT_BODY);
-        run.setFontSize(10);
-        run.setText("REMARKS:");
-
-        XWPFParagraph line1 = doc.createParagraph();
-        line1.setAlignment(ParagraphAlignment.LEFT);
-        XWPFRun l1 = line1.createRun();
-        l1.setFontFamily(FONT_BODY);
-        l1.setFontSize(10);
-        l1.setText("_______________________________________________________________");
-
-        XWPFParagraph line2 = doc.createParagraph();
-        line2.setAlignment(ParagraphAlignment.LEFT);
-        XWPFRun l2 = line2.createRun();
-        l2.setFontFamily(FONT_BODY);
-        l2.setFontSize(10);
-        l2.setText("_______________________________________________________________");
+        XWPFTableRow remarksRow = table.getRow(3);
+        XWPFTableCell remarksCell = remarksRow.getCell(0);
+        remarksCell.removeParagraph(0);
+        XWPFParagraph remarks = remarksCell.addParagraph();
+        remarks.setAlignment(ParagraphAlignment.LEFT);
+        XWPFRun remarksRun = remarks.createRun();
+        remarksRun.setBold(true);
+        remarksRun.setFontFamily(FONT_BODY);
+        remarksRun.setFontSize(10);
+        remarksRun.setText("REMARKS: _________________________________________________");
+        setCellGridSpan(remarksCell, 2);
+        remarksRow.removeCell(1);
     }
 
     private static void addFooterBranding(XWPFDocument doc) {
         XWPFParagraph topLine = doc.createParagraph();
         topLine.setSpacingBefore(180);
-        topLine.setBorderTop(Borders.THICK);
+        topLine.setBorderTop(Borders.DOUBLE);
         topLine.setSpacingAfter(70);
 
         XWPFTable footer = doc.createTable(1, 2);
@@ -376,46 +374,75 @@ public final class WordExportService {
         footer.setInsideVBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "FFFFFF");
 
         XWPFTableCell logosCell = footer.getRow(0).getCell(0);
-        setCellWidth(logosCell, 3600);
+        setCellWidth(logosCell, 4200);
         logosCell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.TOP);
         logosCell.removeParagraph(0);
         XWPFParagraph logos = logosCell.addParagraph();
         logos.setAlignment(ParagraphAlignment.LEFT);
         logos.setVerticalAlignment(TextAlignment.TOP);
 
-        addImageRun(logos, "/images/DepED-logo.png", "DepED-logo.png", 58, 22);
+        addImageRun(logos, "/images/DepED-logo.png", "DepED-logo.png", 1.02, 0.66);
         addSpacer(logos, " ");
-        addImageRun(logos, "/images/bagong-pilipinas-logo.png", "bagong-pilipinas-logo.png", 58, 22);
+        addImageRun(logos, "/images/bagong-pilipinas-logo.png", "bagong-pilipinas-logo.png", 0.73, 0.66);
         addSpacer(logos, " ");
-        addImageRun(logos, "/images/SDO-Seal.png", "SDO-Seal.png", 28, 28);
+        addImageRun(logos, "/images/SDO-Seal.png", "SDO-Seal.png", 0.68, 0.66);
 
         XWPFTableCell textCell = footer.getRow(0).getCell(1);
-        setCellWidth(textCell, 7500);
+        setCellWidth(textCell, 7100);
         textCell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.TOP);
         textCell.removeParagraph(0);
         XWPFParagraph address = textCell.addParagraph();
         address.setAlignment(ParagraphAlignment.LEFT);
         address.setVerticalAlignment(TextAlignment.TOP);
 
-        XWPFRun a = address.createRun();
-        a.setFontFamily(FONT_BODY);
-        a.setFontSize(9);
-        a.setText("Address: Baliwag North District Compound, J. Buizon St. Poblacion, City of Baliwag, Bulacan");
-        a.addBreak();
-        a.setText("Contact Number: (044) 816-6041");
-        a.addBreak();
-        a.setText("Email Address: baliwag.city@deped.gov.ph");
+        XWPFRun aLabel = address.createRun();
+        aLabel.setFontFamily(FONT_BODY);
+        aLabel.setFontSize(8);
+        aLabel.setBold(false);
+        aLabel.setText("Address: ");
+
+        XWPFRun aValue = address.createRun();
+        aValue.setFontFamily(FONT_BODY);
+        aValue.setFontSize(8);
+        aValue.setBold(true);
+        aValue.setText("Baliwag North District Compound, J. Buizon St. Poblacion, City of Baliwag, Bulacan");
+        aValue.addBreak();
+
+        XWPFRun cLabel = address.createRun();
+        cLabel.setFontFamily(FONT_BODY);
+        cLabel.setFontSize(8);
+        cLabel.setBold(false);
+        cLabel.setText("Contact Number: ");
+
+        XWPFRun cValue = address.createRun();
+        cValue.setFontFamily(FONT_BODY);
+        cValue.setFontSize(8);
+        cValue.setBold(true);
+        cValue.setText("(044) 816-6041");
+        cValue.addBreak();
+
+        XWPFRun eLabel = address.createRun();
+        eLabel.setFontFamily(FONT_BODY);
+        eLabel.setFontSize(8);
+        eLabel.setBold(false);
+        eLabel.setText("Email Address: ");
+
+        XWPFRun eValue = address.createRun();
+        eValue.setFontFamily(FONT_BODY);
+        eValue.setFontSize(8);
+        eValue.setBold(true);
+        eValue.setText("baliwag.city@deped.gov.ph");
     }
 
     private static void addImageRun(XWPFParagraph p, String resourcePath, String fileName,
-                                    int widthPx, int heightPx) {
+                                    double widthInches, double heightInches) {
         XWPFRun run = p.createRun();
         try (InputStream is = WordExportService.class.getResourceAsStream(resourcePath)) {
             if (is == null) {
                 return;
             }
             run.addPicture(is, Document.PICTURE_TYPE_PNG, fileName,
-                    Units.toEMU(widthPx), Units.toEMU(heightPx));
+                    inchesToEmu(widthInches), inchesToEmu(heightInches));
         } catch (Exception ignored) {
             // Keep export generation resilient even when a branding image is invalid/missing.
         }
@@ -437,8 +464,26 @@ public final class WordExportService {
         cell.getCTTc().getTcPr().getTcW().setType(STTblWidth.DXA);
     }
 
+    private static void setCellGridSpan(XWPFTableCell cell, int span) {
+        if (cell.getCTTc().getTcPr() == null) {
+            cell.getCTTc().addNewTcPr();
+        }
+        if (!cell.getCTTc().getTcPr().isSetGridSpan()) {
+            cell.getCTTc().getTcPr().addNewGridSpan();
+        }
+        cell.getCTTc().getTcPr().getGridSpan().setVal(BigInteger.valueOf(span));
+    }
+
     private static String formatDate(Equipment e) {
         return e.getDate() != null ? e.getDate().format(DATE_FMT) : "";
+    }
+
+    private static int inchesToTwips(double inches) {
+        return (int) Math.round(inches * TWIPS_PER_INCH);
+    }
+
+    private static int inchesToEmu(double inches) {
+        return (int) Math.round(inches * EMU_PER_INCH);
     }
 
     private static String safeFilePart(String v) {
