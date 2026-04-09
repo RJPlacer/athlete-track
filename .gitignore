@@ -29,3 +29,6 @@ data/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local design reference images
+sample-format-equipment.jpg
