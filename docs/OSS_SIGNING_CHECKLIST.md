@@ -67,3 +67,6 @@ Before public OSS release, ensure you have permission to publish and redistribut
 - team photos
 - logos and seals
 - any externally sourced design assets
+
+Track these permissions in:
+- docs/ASSET_RIGHTS_REGISTER.md

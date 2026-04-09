@@ -76,6 +76,9 @@ In addition to code dependencies, this project contains image assets in src/main
 2. Logos and seals
 3. Any externally sourced graphics
 
+Permission tracking document:
+- docs/ASSET_RIGHTS_REGISTER.md
+
 ## Disclaimer
 
 This document is informational and not legal advice. Always verify current license texts and obligations for your release artifacts.
