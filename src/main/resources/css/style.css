@@ -85,7 +85,7 @@
     -fx-background-radius: 6;
     -fx-cursor: hand;
 }
-.btn-primary:hover { -fx-background-color: #1558882; }
+.btn-primary:hover { -fx-background-color: #155888; }
 
 .btn-secondary {
     -fx-background-color: #FFFFFF;

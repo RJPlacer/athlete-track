@@ -101,8 +101,22 @@ public class EquipmentController {
         try {
             sel.setItems(DatabaseService.getInstance().getEquipmentItems(sel.getId()));
             String path = WordExportService.exportEquipmentMemorandum(sel);
-            Desktop.getDesktop().open(new File(path));
-        } catch (Exception e) { showError("Word export failed: " + e.getMessage()); }
+
+            try {
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+                    Desktop.getDesktop().open(new File(path));
+                } else {
+                    showInfo("Word file exported successfully:\n" + path);
+                }
+            } catch (Exception openEx) {
+                showInfo("Word file exported successfully but could not auto-open it.\nPath:\n" + path);
+            }
+        } catch (Exception e) {
+            String rootMsg = e.getCause() != null && e.getCause().getMessage() != null
+                ? e.getCause().getMessage()
+                : (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+            showError("Word export failed: " + rootMsg);
+        }
     }
 
     private void openForm(Equipment equipment) {

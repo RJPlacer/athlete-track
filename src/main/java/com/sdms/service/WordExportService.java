@@ -3,6 +3,7 @@ package com.sdms.service;
 import com.sdms.model.Equipment;
 import com.sdms.util.AppPaths;
 import org.apache.poi.util.Units;
+import org.apache.poi.xwpf.usermodel.Borders;
 import org.apache.poi.xwpf.usermodel.Document;
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.TableRowAlign;
@@ -31,6 +32,9 @@ import java.util.List;
 public final class WordExportService {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    private static final String FONT_BODY = "Bookman Old Style";
+    private static final String FONT_HEADER_SCRIPT = "Old English Text MT";
+    private static final String FONT_HEADER_SANS = "Tahoma";
 
     private WordExportService() {}
 
@@ -43,12 +47,12 @@ public final class WordExportService {
             safeId = "UNKNOWN";
         }
 
-        Path output = exportDir.resolve("EQUIPMENT_MEMORANDUM_" + safeId + ".docx");
+        Path output = exportDir.resolve("EQUIPMENT_MEMORANDUM_" + safeId + "_" + System.currentTimeMillis() + ".docx");
 
         try (XWPFDocument doc = new XWPFDocument(); OutputStream os = Files.newOutputStream(output)) {
             configureA4Page(doc);
 
-            addHeaderImage(doc, "/images/kagawaran-ng-edukasyon-logo.png", "kagawaran-ng-edukasyon-logo.png", 520, 95);
+            addHeaderSection(doc);
 
             addCenteredTitle(doc,
                     "MEMORANDUM RECEIPT FOR EQUIPMENT, SEMI-EXPANDABLE",
@@ -84,19 +88,41 @@ public final class WordExportService {
         margin.setRight(BigInteger.valueOf(720));
     }
 
+    private static void addHeaderSection(XWPFDocument doc) {
+        addHeaderImage(doc, "/images/kagawaran-ng-edukasyon-logo.png", "kagawaran-ng-edukasyon-logo.png", 84, 72);
+
+        XWPFParagraph text = doc.createParagraph();
+        text.setAlignment(ParagraphAlignment.CENTER);
+        text.setSpacingAfter(80);
+
+        XWPFRun runScript = text.createRun();
+        runScript.setFontFamily(FONT_HEADER_SCRIPT);
+        runScript.setFontSize(11);
+        runScript.setText("Republic of the Philippines");
+        runScript.addBreak();
+        runScript.setText("Department of Education");
+        runScript.addBreak();
+
+        XWPFRun runSans = text.createRun();
+        runSans.setFontFamily(FONT_HEADER_SANS);
+        runSans.setFontSize(10);
+        runSans.setBold(false);
+        runSans.setText("Region III-Central Luzon");
+        runSans.addBreak();
+        runSans.setText("SCHOOLS DIVISION OFFICE OF THE CITY OF BALIWAG");
+
+        XWPFParagraph line = doc.createParagraph();
+        line.setBorderBottom(Borders.THICK);
+        line.setSpacingAfter(140);
+    }
+
     private static void addHeaderImage(XWPFDocument doc, String resourcePath, String fileName,
-                                       int widthPx, int heightPx) throws Exception {
+                                       int widthPx, int heightPx) {
         XWPFParagraph p = doc.createParagraph();
         p.setAlignment(ParagraphAlignment.CENTER);
         p.setSpacingAfter(120);
 
-        XWPFRun run = p.createRun();
-        try (InputStream is = WordExportService.class.getResourceAsStream(resourcePath)) {
-            if (is != null) {
-                run.addPicture(is, Document.PICTURE_TYPE_PNG, fileName,
-                        Units.toEMU(widthPx), Units.toEMU(heightPx));
-            }
-        }
+        addImageRun(p, resourcePath, fileName, widthPx, heightPx);
     }
 
     private static void addCenteredTitle(XWPFDocument doc, String line1, String line2) {
@@ -106,7 +132,7 @@ public final class WordExportService {
 
         XWPFRun run = p.createRun();
         run.setBold(true);
-        run.setFontFamily("Times New Roman");
+        run.setFontFamily(FONT_BODY);
         run.setFontSize(12);
         run.setText(line1);
         run.addBreak();
@@ -142,12 +168,12 @@ public final class WordExportService {
 
         XWPFRun labelRun = p.createRun();
         labelRun.setBold(true);
-        labelRun.setFontFamily("Times New Roman");
+        labelRun.setFontFamily(FONT_BODY);
         labelRun.setFontSize(10);
         labelRun.setText(label + " ");
 
         XWPFRun valueRun = p.createRun();
-        valueRun.setFontFamily("Times New Roman");
+        valueRun.setFontFamily(FONT_BODY);
         valueRun.setFontSize(10);
         valueRun.setText(ns(value));
     }
@@ -173,7 +199,7 @@ public final class WordExportService {
             p.setAlignment(ParagraphAlignment.CENTER);
             XWPFRun run = p.createRun();
             run.setBold(true);
-            run.setFontFamily("Times New Roman");
+            run.setFontFamily(FONT_BODY);
             run.setFontSize(10);
             run.setText(headers[i]);
         }
@@ -218,7 +244,7 @@ public final class WordExportService {
         p.setSpacingBefore(30);
         p.setSpacingAfter(30);
         XWPFRun run = p.createRun();
-        run.setFontFamily("Times New Roman");
+        run.setFontFamily(FONT_BODY);
         run.setFontSize(10);
         run.setText(ns(text));
     }
@@ -229,7 +255,7 @@ public final class WordExportService {
         p.setAlignment(ParagraphAlignment.CENTER);
 
         XWPFRun run = p.createRun();
-        run.setFontFamily("Times New Roman");
+        run.setFontFamily(FONT_BODY);
         run.setFontSize(10);
         run.setText("I acknowledge to have received this _____ day of _______________, all sports");
         run.addBreak();
@@ -246,21 +272,21 @@ public final class WordExportService {
         byLabel.setAlignment(ParagraphAlignment.LEFT);
         XWPFRun byLabelRun = byLabel.createRun();
         byLabelRun.setBold(true);
-        byLabelRun.setFontFamily("Times New Roman");
+        byLabelRun.setFontFamily(FONT_BODY);
         byLabelRun.setFontSize(10);
         byLabelRun.setText("ISSUED BY:");
 
         XWPFParagraph byName = issuedByCell.addParagraph();
         byName.setAlignment(ParagraphAlignment.CENTER);
         XWPFRun byNameRun = byName.createRun();
-        byNameRun.setFontFamily("Times New Roman");
+        byNameRun.setFontFamily(FONT_BODY);
         byNameRun.setFontSize(10);
         byNameRun.setText("____________________________");
 
         XWPFParagraph byPrinted = issuedByCell.addParagraph();
         byPrinted.setAlignment(ParagraphAlignment.CENTER);
         XWPFRun byPrintedRun = byPrinted.createRun();
-        byPrintedRun.setFontFamily("Times New Roman");
+        byPrintedRun.setFontFamily(FONT_BODY);
         byPrintedRun.setFontSize(9);
         byPrintedRun.setText("PRINTED NAME OVER SIGNATURE / DATE");
 
@@ -269,7 +295,7 @@ public final class WordExportService {
             byHint.setAlignment(ParagraphAlignment.CENTER);
             XWPFRun hintRun = byHint.createRun();
             hintRun.setItalic(true);
-            hintRun.setFontFamily("Times New Roman");
+            hintRun.setFontFamily(FONT_BODY);
             hintRun.setFontSize(9);
             hintRun.setText("(" + ns(e.getIssuedBy()) + ")");
         }
@@ -280,21 +306,21 @@ public final class WordExportService {
         toLabel.setAlignment(ParagraphAlignment.LEFT);
         XWPFRun toLabelRun = toLabel.createRun();
         toLabelRun.setBold(true);
-        toLabelRun.setFontFamily("Times New Roman");
+        toLabelRun.setFontFamily(FONT_BODY);
         toLabelRun.setFontSize(10);
         toLabelRun.setText("ISSUED TO:");
 
         XWPFParagraph toName = issuedToCell.addParagraph();
         toName.setAlignment(ParagraphAlignment.CENTER);
         XWPFRun toNameRun = toName.createRun();
-        toNameRun.setFontFamily("Times New Roman");
+        toNameRun.setFontFamily(FONT_BODY);
         toNameRun.setFontSize(10);
         toNameRun.setText("____________________________");
 
         XWPFParagraph toPrinted = issuedToCell.addParagraph();
         toPrinted.setAlignment(ParagraphAlignment.CENTER);
         XWPFRun toPrintedRun = toPrinted.createRun();
-        toPrintedRun.setFontFamily("Times New Roman");
+        toPrintedRun.setFontFamily(FONT_BODY);
         toPrintedRun.setFontSize(9);
         toPrintedRun.setText("PRINTED NAME OVER SIGNATURE / DATE");
 
@@ -303,7 +329,7 @@ public final class WordExportService {
             toHint.setAlignment(ParagraphAlignment.CENTER);
             XWPFRun hintRun = toHint.createRun();
             hintRun.setItalic(true);
-            hintRun.setFontFamily("Times New Roman");
+            hintRun.setFontFamily(FONT_BODY);
             hintRun.setFontSize(9);
             hintRun.setText("(" + ns(e.getIssuedTo()) + ")");
         }
@@ -314,42 +340,65 @@ public final class WordExportService {
         p.setSpacingBefore(100);
         XWPFRun run = p.createRun();
         run.setBold(true);
-        run.setFontFamily("Times New Roman");
+        run.setFontFamily(FONT_BODY);
         run.setFontSize(10);
         run.setText("REMARKS:");
 
         XWPFParagraph line1 = doc.createParagraph();
         line1.setAlignment(ParagraphAlignment.LEFT);
         XWPFRun l1 = line1.createRun();
-        l1.setFontFamily("Times New Roman");
+        l1.setFontFamily(FONT_BODY);
         l1.setFontSize(10);
         l1.setText("_______________________________________________________________");
 
         XWPFParagraph line2 = doc.createParagraph();
         line2.setAlignment(ParagraphAlignment.LEFT);
         XWPFRun l2 = line2.createRun();
-        l2.setFontFamily("Times New Roman");
+        l2.setFontFamily(FONT_BODY);
         l2.setFontSize(10);
         l2.setText("_______________________________________________________________");
     }
 
-    private static void addFooterBranding(XWPFDocument doc) throws Exception {
-        XWPFParagraph logos = doc.createParagraph();
+    private static void addFooterBranding(XWPFDocument doc) {
+        XWPFParagraph topLine = doc.createParagraph();
+        topLine.setSpacingBefore(180);
+        topLine.setBorderTop(Borders.THICK);
+        topLine.setSpacingAfter(70);
+
+        XWPFTable footer = doc.createTable(1, 2);
+        footer.setWidth("100%");
+        footer.setTableAlignment(TableRowAlign.CENTER);
+        footer.setTopBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "FFFFFF");
+        footer.setBottomBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "FFFFFF");
+        footer.setLeftBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "FFFFFF");
+        footer.setRightBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "FFFFFF");
+        footer.setInsideHBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "FFFFFF");
+        footer.setInsideVBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "FFFFFF");
+
+        XWPFTableCell logosCell = footer.getRow(0).getCell(0);
+        setCellWidth(logosCell, 3600);
+        logosCell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.TOP);
+        logosCell.removeParagraph(0);
+        XWPFParagraph logos = logosCell.addParagraph();
         logos.setAlignment(ParagraphAlignment.LEFT);
-        logos.setSpacingBefore(180);
+        logos.setVerticalAlignment(TextAlignment.TOP);
 
-        addImageRun(logos, "/images/DepED-logo.png", "DepED-logo.png", 90, 40);
-        addSpacer(logos, "   ");
-        addImageRun(logos, "/images/bagong-pilipinas-logo.png", "bagong-pilipinas-logo.png", 90, 40);
-        addSpacer(logos, "   ");
-        addImageRun(logos, "/images/SDO-Seal.png", "SDO-Seal.png", 50, 50);
+        addImageRun(logos, "/images/DepED-logo.png", "DepED-logo.png", 58, 22);
+        addSpacer(logos, " ");
+        addImageRun(logos, "/images/bagong-pilipinas-logo.png", "bagong-pilipinas-logo.png", 58, 22);
+        addSpacer(logos, " ");
+        addImageRun(logos, "/images/SDO-Seal.png", "SDO-Seal.png", 28, 28);
 
-        XWPFParagraph address = doc.createParagraph();
+        XWPFTableCell textCell = footer.getRow(0).getCell(1);
+        setCellWidth(textCell, 7500);
+        textCell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.TOP);
+        textCell.removeParagraph(0);
+        XWPFParagraph address = textCell.addParagraph();
         address.setAlignment(ParagraphAlignment.LEFT);
         address.setVerticalAlignment(TextAlignment.TOP);
-        address.setSpacingBefore(40);
+
         XWPFRun a = address.createRun();
-        a.setFontFamily("Times New Roman");
+        a.setFontFamily(FONT_BODY);
         a.setFontSize(9);
         a.setText("Address: Baliwag North District Compound, J. Buizon St. Poblacion, City of Baliwag, Bulacan");
         a.addBreak();
@@ -359,13 +408,16 @@ public final class WordExportService {
     }
 
     private static void addImageRun(XWPFParagraph p, String resourcePath, String fileName,
-                                    int widthPx, int heightPx) throws Exception {
+                                    int widthPx, int heightPx) {
         XWPFRun run = p.createRun();
         try (InputStream is = WordExportService.class.getResourceAsStream(resourcePath)) {
-            if (is != null) {
-                run.addPicture(is, Document.PICTURE_TYPE_PNG, fileName,
-                        Units.toEMU(widthPx), Units.toEMU(heightPx));
+            if (is == null) {
+                return;
             }
+            run.addPicture(is, Document.PICTURE_TYPE_PNG, fileName,
+                    Units.toEMU(widthPx), Units.toEMU(heightPx));
+        } catch (Exception ignored) {
+            // Keep export generation resilient even when a branding image is invalid/missing.
         }
     }
 
