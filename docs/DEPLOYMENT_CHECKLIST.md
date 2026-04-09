@@ -1,6 +1,6 @@
-# SDMS Deployment Checklist (Windows)
+# Athlete Track Deployment Checklist (Windows)
 
-Use this checklist when preparing and installing SDMS in a school/division office.
+Use this checklist when preparing and installing Athlete Track in a school/division office.
 
 ## 1. Build Machine Prerequisites
 
@@ -28,13 +28,13 @@ Recommended command:
 - ./build-installer.ps1 -CleanOutput
 
 Expected output:
-- dist/SDMS-1.0.exe
+- dist/Athlete Track-1.0.exe
 
 ## 4. Install Validation (Clean PC)
 
-1. Run dist/SDMS-1.0.exe.
+1. Run dist/Athlete Track-1.0.exe.
 2. Complete installation.
-3. Launch SDMS from Start menu or desktop shortcut.
+3. Launch Athlete Track from Start menu or desktop shortcut.
 4. Verify login screen appears.
 
 ## 5. Post-Install Functional Smoke Test
@@ -67,15 +67,15 @@ If app does not open:
 ## 8. Backup and Restore Plan
 
 ### Backup
-- Close SDMS
+- Close Athlete Track
 - Copy:
   - %LOCALAPPDATA%/SDMS/sdms.db
   - Optional: %LOCALAPPDATA%/SDMS/data
 
 ### Restore
-- Close SDMS
+- Close Athlete Track
 - Replace sdms.db with backup file
-- Reopen SDMS
+- Reopen Athlete Track
 
 ## 9. Security and Operations
 
@@ -87,8 +87,22 @@ If app does not open:
 ## 10. Release Handover Package
 
 Include these files for delivery:
-- dist/SDMS-1.0.exe
+- dist/Athlete Track-1.0.exe
 - docs/USER_MANUAL.md
 - docs/DEPLOYMENT_CHECKLIST.md
 - docs/SYSTEM_DOCUMENTATION.md
 - Optional: docs/DOCUMENTATION_PACK.md
+
+## 11. CI Workflow (GitHub Actions)
+
+These workflows are now part of the repository:
+- .github/workflows/ci.yml
+- .github/workflows/release-build.yml
+
+What they do:
+- ci.yml: Runs Maven build checks on push and pull requests.
+- release-build.yml: Builds a Windows installer on tag pushes (v*) and uploads installer + checksum to the GitHub Release.
+
+Manual trigger option:
+- Actions tab -> Release Build -> Run workflow
+- Optional input: existing tag name (for example: v1.0.1)
