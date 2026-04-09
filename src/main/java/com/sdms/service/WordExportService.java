@@ -2,9 +2,11 @@ package com.sdms.service;
 
 import com.sdms.model.Equipment;
 import com.sdms.util.AppPaths;
+import org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy;
 import org.apache.poi.xwpf.usermodel.Borders;
 import org.apache.poi.xwpf.usermodel.Document;
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
+import org.apache.poi.xwpf.usermodel.XWPFFooter;
 import org.apache.poi.xwpf.usermodel.TableRowAlign;
 import org.apache.poi.xwpf.usermodel.TextAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -16,8 +18,14 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageMar;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTbl;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblGrid;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblLayoutType;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STPageOrientation;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblLayoutType;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHdrFtr;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +44,8 @@ public final class WordExportService {
     private static final String FONT_HEADER_SANS = "Tahoma";
     private static final int TWIPS_PER_INCH = 1440;
     private static final int EMU_PER_INCH = 914400;
+    private static final int[] EQUIPMENT_TABLE_WIDTHS = {800, 800, 4300, 1700, 1700, 1700};
+    private static final int EQUIPMENT_TABLE_TOTAL_WIDTH = 11000;
 
     private WordExportService() {}
 
@@ -110,9 +120,13 @@ public final class WordExportService {
         runSans.addBreak();
         runSans.setText("SCHOOLS DIVISION OFFICE OF THE CITY OF BALIWAG");
 
-        XWPFParagraph line = doc.createParagraph();
-        line.setBorderBottom(Borders.DOUBLE);
-        line.setSpacingAfter(140);
+        XWPFParagraph line1 = doc.createParagraph();
+        line1.setBorderBottom(Borders.THICK);
+        line1.setSpacingAfter(0);
+
+        XWPFParagraph line2 = doc.createParagraph();
+        line2.setBorderBottom(Borders.THICK);
+        line2.setSpacingAfter(140);
     }
 
     private static void addHeaderImage(XWPFDocument doc, String resourcePath, String fileName,
@@ -179,7 +193,7 @@ public final class WordExportService {
 
     private static void addItemsTable(XWPFDocument doc, List<Equipment.EquipmentItem> items) {
         XWPFTable table = doc.createTable(1, 6);
-        table.setWidth("100%");
+        configureFixedTableLayout(table, EQUIPMENT_TABLE_WIDTHS);
 
         String[] headers = {
                 "QTY",
@@ -202,13 +216,7 @@ public final class WordExportService {
             run.setFontSize(10);
             run.setText(headers[i]);
         }
-
-        setCellWidth(headerRow.getCell(0), 900);
-        setCellWidth(headerRow.getCell(1), 900);
-        setCellWidth(headerRow.getCell(2), 3600);
-        setCellWidth(headerRow.getCell(3), 1700);
-        setCellWidth(headerRow.getCell(4), 1700);
-        setCellWidth(headerRow.getCell(5), 1700);
+        setRowWidths(headerRow, EQUIPMENT_TABLE_WIDTHS);
 
         int minRows = 10;
         int usedRows = 0;
@@ -222,6 +230,7 @@ public final class WordExportService {
                 writeItemCell(row.getCell(3), item.dateBorrowed != null ? item.dateBorrowed.format(DATE_FMT) : "", ParagraphAlignment.CENTER);
                 writeItemCell(row.getCell(4), item.dateReturned != null ? item.dateReturned.format(DATE_FMT) : "", ParagraphAlignment.CENTER);
                 writeItemCell(row.getCell(5), ns(item.remarks), ParagraphAlignment.LEFT);
+                setRowWidths(row, EQUIPMENT_TABLE_WIDTHS);
                 usedRows++;
             }
         }
@@ -232,6 +241,7 @@ public final class WordExportService {
                 writeItemCell(row.getCell(i), "", i < 2 || i == 3 || i == 4
                         ? ParagraphAlignment.CENTER : ParagraphAlignment.LEFT);
             }
+            setRowWidths(row, EQUIPMENT_TABLE_WIDTHS);
             usedRows++;
         }
     }
@@ -250,7 +260,7 @@ public final class WordExportService {
 
     private static void addAcknowledgementIssuedRemarksTable(XWPFDocument doc, Equipment e) {
         XWPFTable table = doc.createTable(4, 2);
-        table.setWidth("100%");
+        configureFixedTableLayout(table, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
         table.setTableAlignment(TableRowAlign.CENTER);
 
         XWPFTableRow ackRow = table.getRow(0);
@@ -264,6 +274,7 @@ public final class WordExportService {
         ackRun.setText("I acknowledge to have received this _____ day of _______________, all sports");
         ackRun.addBreak();
         ackRun.setText("equipment/supplies/item in good condition.");
+        setCellWidth(ackCell, EQUIPMENT_TABLE_TOTAL_WIDTH);
         setCellGridSpan(ackCell, 2);
         ackRow.removeCell(1);
 
@@ -289,6 +300,7 @@ public final class WordExportService {
         toLabelRun.setFontFamily(FONT_BODY);
         toLabelRun.setFontSize(10);
         toLabelRun.setText("ISSUED TO:");
+        setRowWidths(labelRow, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
 
         XWPFTableRow signRow = table.getRow(2);
         XWPFTableCell bySignCell = signRow.getCell(0);
@@ -342,6 +354,7 @@ public final class WordExportService {
             toHintRun.setFontSize(9);
             toHintRun.setText("(" + ns(e.getIssuedTo()) + ")");
         }
+        setRowWidths(signRow, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
 
         XWPFTableRow remarksRow = table.getRow(3);
         XWPFTableCell remarksCell = remarksRow.getCell(0);
@@ -353,17 +366,33 @@ public final class WordExportService {
         remarksRun.setFontFamily(FONT_BODY);
         remarksRun.setFontSize(10);
         remarksRun.setText("REMARKS: _________________________________________________");
+        setCellWidth(remarksCell, EQUIPMENT_TABLE_TOTAL_WIDTH);
         setCellGridSpan(remarksCell, 2);
         remarksRow.removeCell(1);
     }
 
     private static void addFooterBranding(XWPFDocument doc) {
-        XWPFParagraph topLine = doc.createParagraph();
-        topLine.setSpacingBefore(180);
-        topLine.setBorderTop(Borders.DOUBLE);
-        topLine.setSpacingAfter(70);
+        CTSectPr sectPr = doc.getDocument().getBody().isSetSectPr()
+            ? doc.getDocument().getBody().getSectPr()
+            : doc.getDocument().getBody().addNewSectPr();
 
-        XWPFTable footer = doc.createTable(1, 2);
+        XWPFHeaderFooterPolicy policy = new XWPFHeaderFooterPolicy(doc, sectPr);
+        XWPFFooter footerContainer = policy.createFooter(STHdrFtr.DEFAULT);
+
+        XWPFParagraph firstLine;
+        if (footerContainer.getParagraphs().isEmpty()) {
+            firstLine = footerContainer.createParagraph();
+        } else {
+            firstLine = footerContainer.getParagraphArray(0);
+        }
+        firstLine.setBorderTop(Borders.THICK);
+        firstLine.setSpacingAfter(0);
+
+        XWPFParagraph secondLine = footerContainer.createParagraph();
+        secondLine.setBorderTop(Borders.THICK);
+        secondLine.setSpacingAfter(70);
+
+        XWPFTable footer = footerContainer.createTable(1, 2);
         footer.setWidth("100%");
         footer.setTableAlignment(TableRowAlign.CENTER);
         footer.setTopBorder(XWPFTable.XWPFBorderType.NONE, 0, 0, "FFFFFF");
@@ -462,6 +491,43 @@ public final class WordExportService {
         }
         cell.getCTTc().getTcPr().getTcW().setW(BigInteger.valueOf(widthTwips));
         cell.getCTTc().getTcPr().getTcW().setType(STTblWidth.DXA);
+    }
+
+    private static void setRowWidths(XWPFTableRow row, int[] widthsTwips) {
+        for (int i = 0; i < widthsTwips.length && i < row.getTableCells().size(); i++) {
+            setCellWidth(row.getCell(i), widthsTwips[i]);
+        }
+    }
+
+    private static void configureFixedTableLayout(XWPFTable table, int[] widthsTwips) {
+        CTTbl ctTbl = table.getCTTbl();
+        CTTblPr tblPr = ctTbl.getTblPr() != null ? ctTbl.getTblPr() : ctTbl.addNewTblPr();
+
+        int total = 0;
+        for (int w : widthsTwips) {
+            total += w;
+        }
+
+        if (!tblPr.isSetTblW()) {
+            tblPr.addNewTblW();
+        }
+        tblPr.getTblW().setType(STTblWidth.DXA);
+        tblPr.getTblW().setW(BigInteger.valueOf(total));
+
+        CTTblLayoutType layout = tblPr.isSetTblLayout() ? tblPr.getTblLayout() : tblPr.addNewTblLayout();
+        layout.setType(STTblLayoutType.FIXED);
+
+        CTTblGrid grid = ctTbl.getTblGrid() != null ? ctTbl.getTblGrid() : ctTbl.addNewTblGrid();
+        while (grid.sizeOfGridColArray() > 0) {
+            grid.removeGridCol(0);
+        }
+        for (int w : widthsTwips) {
+            grid.addNewGridCol().setW(BigInteger.valueOf(w));
+        }
+
+        if (table.getNumberOfRows() > 0) {
+            setRowWidths(table.getRow(0), widthsTwips);
+        }
     }
 
     private static void setCellGridSpan(XWPFTableCell cell, int span) {
