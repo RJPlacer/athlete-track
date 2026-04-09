@@ -290,6 +290,8 @@ public final class WordExportService {
         ackCell.removeParagraph(0);
         XWPFParagraph ack = ackCell.addParagraph();
         ack.setAlignment(ParagraphAlignment.CENTER);
+        ack.setSpacingBefore(120);
+        ack.setSpacingAfter(120);
         XWPFRun ackRun = ack.createRun();
         ackRun.setFontFamily(FONT_BODY);
         ackRun.setFontSize(10);
@@ -311,7 +313,8 @@ public final class WordExportService {
         // Label
         XWPFParagraph byLabel = byCell.addParagraph();
         byLabel.setAlignment(ParagraphAlignment.LEFT);
-        byLabel.setSpacingAfter(0);
+        byLabel.setSpacingAfter(120);
+        byLabel.setIndentationRight(120);
         XWPFRun byLabelRun = byLabel.createRun();
         byLabelRun.setBold(true);
         byLabelRun.setItalic(true);
@@ -319,22 +322,23 @@ public final class WordExportService {
         byLabelRun.setFontSize(10);
         byLabelRun.setText("ISSUED BY:");
 
-        // Underline (bold, no space after)
+        // Blank space (no underline line)
         XWPFParagraph byLine = byCell.addParagraph();
         byLine.setAlignment(ParagraphAlignment.CENTER);
-        byLine.setSpacingBefore(40);
+        byLine.setSpacingBefore(120);
         byLine.setSpacingAfter(0);
+        byLine.setIndentationRight(120);
         XWPFRun byLineRun = byLine.createRun();
-        byLineRun.setBold(true);
         byLineRun.setFontFamily(FONT_BODY);
         byLineRun.setFontSize(10);
-        byLineRun.setText("____________________________");
+        byLineRun.setText(" ");
 
         // Caption — tight to the underline
         XWPFParagraph byPrinted = byCell.addParagraph();
         byPrinted.setAlignment(ParagraphAlignment.CENTER);
         byPrinted.setSpacingBefore(0);
-        byPrinted.setSpacingAfter(40);
+        byPrinted.setSpacingAfter(120);
+        byPrinted.setIndentationRight(120);
         XWPFRun byPrintedRun = byPrinted.createRun();
         byPrintedRun.setFontFamily(FONT_BODY);
         byPrintedRun.setFontSize(9);
@@ -357,7 +361,8 @@ public final class WordExportService {
         // Label
         XWPFParagraph toLabel = toCell.addParagraph();
         toLabel.setAlignment(ParagraphAlignment.LEFT);
-        toLabel.setSpacingAfter(0);
+        toLabel.setSpacingAfter(120);
+        toLabel.setIndentationLeft(120);
         XWPFRun toLabelRun = toLabel.createRun();
         toLabelRun.setBold(true);
         toLabelRun.setItalic(true);
@@ -365,22 +370,23 @@ public final class WordExportService {
         toLabelRun.setFontSize(10);
         toLabelRun.setText("ISSUED TO:");
 
-        // Underline (bold, no space after)
+        // Blank space (no underline line)
         XWPFParagraph toLine = toCell.addParagraph();
         toLine.setAlignment(ParagraphAlignment.CENTER);
-        toLine.setSpacingBefore(40);
+        toLine.setSpacingBefore(120);
         toLine.setSpacingAfter(0);
+        toLine.setIndentationLeft(120);
         XWPFRun toLineRun = toLine.createRun();
-        toLineRun.setBold(true);
         toLineRun.setFontFamily(FONT_BODY);
         toLineRun.setFontSize(10);
-        toLineRun.setText("____________________________");
+        toLineRun.setText(" ");
 
         // Caption — tight to the underline
         XWPFParagraph toPrinted = toCell.addParagraph();
         toPrinted.setAlignment(ParagraphAlignment.CENTER);
         toPrinted.setSpacingBefore(0);
-        toPrinted.setSpacingAfter(40);
+        toPrinted.setSpacingAfter(120);
+        toPrinted.setIndentationLeft(120);
         XWPFRun toPrintedRun = toPrinted.createRun();
         toPrintedRun.setFontFamily(FONT_BODY);
         toPrintedRun.setFontSize(9);
@@ -403,11 +409,22 @@ public final class WordExportService {
         remarksCell.removeParagraph(0);
         XWPFParagraph remarks = remarksCell.addParagraph();
         remarks.setAlignment(ParagraphAlignment.LEFT);
+        remarks.setSpacingBefore(120);
+        remarks.setSpacingAfter(180);
         XWPFRun remarksRun = remarks.createRun();
         remarksRun.setBold(true);
         remarksRun.setFontFamily(FONT_BODY);
         remarksRun.setFontSize(10);
-        remarksRun.setText("REMARKS: _________________________________________________");
+        remarksRun.setText("REMARKS:");
+
+        XWPFParagraph remarksBlank = remarksCell.addParagraph();
+        remarksBlank.setAlignment(ParagraphAlignment.LEFT);
+        remarksBlank.setSpacingBefore(120);
+        remarksBlank.setSpacingAfter(200);
+        XWPFRun remarksBlankRun = remarksBlank.createRun();
+        remarksBlankRun.setFontFamily(FONT_BODY);
+        remarksBlankRun.setFontSize(10);
+        remarksBlankRun.setText(" ");
         setCellWidth(remarksCell, EQUIPMENT_TABLE_TOTAL_WIDTH);
         setCellGridSpan(remarksCell, 2);
         remarksRow.removeCell(1);
