@@ -49,6 +49,7 @@ public final class WordExportService {
     private static final int TWIPS_PER_INCH = 1440;
     private static final int EMU_PER_INCH = 914400;
     private static final int[] EQUIPMENT_TABLE_WIDTHS = {800, 800, 4300, 1700, 1700, 1700};
+    private static final int[] INFO_TABLE_WIDTHS = {3667, 3667, 3666};
     private static final int EQUIPMENT_TABLE_TOTAL_WIDTH = 11000;
     private static final int HEAVY_LINE_SIZE = 24;
 
@@ -123,7 +124,7 @@ public final class WordExportService {
 
         XWPFParagraph text = header.createParagraph();
         text.setAlignment(ParagraphAlignment.CENTER);
-        text.setSpacingAfter(80);
+        text.setSpacingAfter(0);
 
         XWPFRun runScript = text.createRun();
         runScript.setFontFamily(FONT_HEADER_SCRIPT);
@@ -147,7 +148,7 @@ public final class WordExportService {
 
         XWPFParagraph line2 = header.createParagraph();
         setParagraphBottomBorder(line2, HEAVY_LINE_SIZE);
-        line2.setSpacingAfter(140);
+        line2.setSpacingAfter(0);
     }
 
     private static void addCenteredTitle(XWPFDocument doc, String line1, String line2) {
@@ -166,7 +167,7 @@ public final class WordExportService {
 
     private static void addBorrowerInfoTable(XWPFDocument doc, Equipment e) {
         XWPFTable infoTable = doc.createTable(2, 3);
-        infoTable.setWidth("100%");
+        configureFixedTableLayout(infoTable, INFO_TABLE_WIDTHS);
         infoTable.setTableAlignment(TableRowAlign.CENTER);
 
         fillInfoCell(infoTable.getRow(0).getCell(0), "Name:", e.getBorrowerName());
@@ -177,12 +178,11 @@ public final class WordExportService {
         fillInfoCell(infoTable.getRow(1).getCell(1), "Mobile No:", e.getMobileNo());
         fillInfoCell(infoTable.getRow(1).getCell(2), "Date:", formatDate(e));
 
-        setCellWidth(infoTable.getRow(0).getCell(0), 3400);
-        setCellWidth(infoTable.getRow(0).getCell(1), 3400);
-        setCellWidth(infoTable.getRow(0).getCell(2), 3700);
+        setRowWidths(infoTable.getRow(0), INFO_TABLE_WIDTHS);
+        setRowWidths(infoTable.getRow(1), INFO_TABLE_WIDTHS);
 
         XWPFParagraph spacer = doc.createParagraph();
-        spacer.setSpacingAfter(120);
+        spacer.setSpacingAfter(0);
     }
 
     private static void fillInfoCell(XWPFTableCell cell, String label, String value) {
@@ -271,12 +271,11 @@ public final class WordExportService {
     }
 
     private static void addAcknowledgementIssuedRemarksTable(XWPFDocument doc, Equipment e) {
-        XWPFTable table = doc.createTable(4, 6);
-        configureFixedTableLayout(table, EQUIPMENT_TABLE_WIDTHS);
+        XWPFTable table = doc.createTable(4, 2);
+        configureFixedTableLayout(table, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
         table.setTableAlignment(TableRowAlign.CENTER);
 
         XWPFTableRow ackRow = table.getRow(0);
-        setRowWidths(ackRow, EQUIPMENT_TABLE_WIDTHS);
         XWPFTableCell ackCell = ackRow.getCell(0);
         ackCell.removeParagraph(0);
         XWPFParagraph ack = ackCell.addParagraph();
@@ -288,12 +287,11 @@ public final class WordExportService {
         ackRun.addBreak();
         ackRun.setText("equipment/supplies/item in good condition.");
         setCellWidth(ackCell, EQUIPMENT_TABLE_TOTAL_WIDTH);
-        mergeCells(ackRow, 0, 5);
+        setCellGridSpan(ackCell, 2);
+        ackRow.removeCell(1);
 
         XWPFTableRow labelRow = table.getRow(1);
-        setRowWidths(labelRow, EQUIPMENT_TABLE_WIDTHS);
-        mergeCells(labelRow, 0, 2);
-        mergeCells(labelRow, 1, 3);
+        setRowWidths(labelRow, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
         XWPFTableCell issuedByLabelCell = labelRow.getCell(0);
         issuedByLabelCell.removeParagraph(0);
         XWPFParagraph byLabel = issuedByLabelCell.addParagraph();
@@ -317,9 +315,7 @@ public final class WordExportService {
         toLabelRun.setText("ISSUED TO:");
 
         XWPFTableRow signRow = table.getRow(2);
-        setRowWidths(signRow, EQUIPMENT_TABLE_WIDTHS);
-        mergeCells(signRow, 0, 2);
-        mergeCells(signRow, 1, 3);
+        setRowWidths(signRow, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
         XWPFTableCell bySignCell = signRow.getCell(0);
         bySignCell.removeParagraph(0);
         XWPFParagraph byLine = bySignCell.addParagraph();
@@ -373,7 +369,7 @@ public final class WordExportService {
         }
 
         XWPFTableRow remarksRow = table.getRow(3);
-        setRowWidths(remarksRow, EQUIPMENT_TABLE_WIDTHS);
+        setRowWidths(remarksRow, new int[] { EQUIPMENT_TABLE_TOTAL_WIDTH / 2, EQUIPMENT_TABLE_TOTAL_WIDTH / 2 });
         XWPFTableCell remarksCell = remarksRow.getCell(0);
         remarksCell.removeParagraph(0);
         XWPFParagraph remarks = remarksCell.addParagraph();
@@ -384,7 +380,8 @@ public final class WordExportService {
         remarksRun.setFontSize(10);
         remarksRun.setText("REMARKS: _________________________________________________");
         setCellWidth(remarksCell, EQUIPMENT_TABLE_TOTAL_WIDTH);
-        mergeCells(remarksRow, 0, 5);
+        setCellGridSpan(remarksCell, 2);
+        remarksRow.removeCell(1);
     }
 
     private static void addFooterBranding(XWPFDocument doc) {
@@ -406,7 +403,7 @@ public final class WordExportService {
 
         XWPFParagraph secondLine = footerContainer.createParagraph();
         setParagraphTopBorder(secondLine, HEAVY_LINE_SIZE);
-        secondLine.setSpacingAfter(70);
+        secondLine.setSpacingAfter(0);
 
         XWPFTable footer = footerContainer.createTable(1, 2);
         footer.setWidth("100%");
