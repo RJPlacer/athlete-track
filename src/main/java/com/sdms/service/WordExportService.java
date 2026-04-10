@@ -323,7 +323,7 @@ public final class WordExportService {
         // Label
         XWPFParagraph byLabel = byCell.addParagraph();
         byLabel.setAlignment(ParagraphAlignment.LEFT);
-        byLabel.setSpacingAfter(120);
+        byLabel.setSpacingAfter(60);
         byLabel.setIndentationRight(120);
         XWPFRun byLabelRun = byLabel.createRun();
         byLabelRun.setBold(true);
@@ -332,10 +332,22 @@ public final class WordExportService {
         byLabelRun.setFontSize(10);
         byLabelRun.setText("ISSUED BY:");
 
+        // Name (if present, not italic)
+        if (!ns(e.getIssuedBy()).isBlank()) {
+            XWPFParagraph byName = byCell.addParagraph();
+            byName.setAlignment(ParagraphAlignment.CENTER);
+            byName.setSpacingAfter(0);
+            byName.setIndentationRight(120);
+            XWPFRun byNameRun = byName.createRun();
+            byNameRun.setFontFamily(FONT_BODY);
+            byNameRun.setFontSize(9);
+            byNameRun.setText(ns(e.getIssuedBy()));
+        }
+
         // Signature underline
         XWPFParagraph byLine = byCell.addParagraph();
         byLine.setAlignment(ParagraphAlignment.CENTER);
-        byLine.setSpacingBefore(120);
+        byLine.setSpacingBefore(60);
         byLine.setSpacingAfter(0);
         byLine.setIndentationRight(120);
         XWPFRun byLineRun = byLine.createRun();
@@ -355,16 +367,6 @@ public final class WordExportService {
         byPrintedRun.setFontSize(9);
         byPrintedRun.setText("PRINTED NAME OVER SIGNATURE / DATE");
 
-        if (!ns(e.getIssuedBy()).isBlank()) {
-            XWPFParagraph byHint = byCell.addParagraph();
-            byHint.setAlignment(ParagraphAlignment.CENTER);
-            XWPFRun byHintRun = byHint.createRun();
-            byHintRun.setItalic(true);
-            byHintRun.setFontFamily(FONT_BODY);
-            byHintRun.setFontSize(9);
-            byHintRun.setText("(" + ns(e.getIssuedBy()) + ")");
-        }
-
         // --- ISSUED TO cell ---
         XWPFTableCell toCell = issuedRow.getCell(1);
         toCell.removeParagraph(0);
@@ -372,7 +374,7 @@ public final class WordExportService {
         // Label
         XWPFParagraph toLabel = toCell.addParagraph();
         toLabel.setAlignment(ParagraphAlignment.LEFT);
-        toLabel.setSpacingAfter(120);
+        toLabel.setSpacingAfter(60);
         toLabel.setIndentationLeft(120);
         XWPFRun toLabelRun = toLabel.createRun();
         toLabelRun.setBold(true);
@@ -381,10 +383,22 @@ public final class WordExportService {
         toLabelRun.setFontSize(10);
         toLabelRun.setText("ISSUED TO:");
 
+        // Name (if present, not italic)
+        if (!ns(e.getIssuedTo()).isBlank()) {
+            XWPFParagraph toName = toCell.addParagraph();
+            toName.setAlignment(ParagraphAlignment.CENTER);
+            toName.setSpacingAfter(0);
+            toName.setIndentationLeft(120);
+            XWPFRun toNameRun = toName.createRun();
+            toNameRun.setFontFamily(FONT_BODY);
+            toNameRun.setFontSize(9);
+            toNameRun.setText(ns(e.getIssuedTo()));
+        }
+
         // Signature underline
         XWPFParagraph toLine = toCell.addParagraph();
         toLine.setAlignment(ParagraphAlignment.CENTER);
-        toLine.setSpacingBefore(120);
+        toLine.setSpacingBefore(60);
         toLine.setSpacingAfter(0);
         toLine.setIndentationLeft(120);
         XWPFRun toLineRun = toLine.createRun();
@@ -403,16 +417,6 @@ public final class WordExportService {
         toPrintedRun.setFontFamily(FONT_BODY);
         toPrintedRun.setFontSize(9);
         toPrintedRun.setText("PRINTED NAME OVER SIGNATURE / DATE");
-
-        if (!ns(e.getIssuedTo()).isBlank()) {
-            XWPFParagraph toHint = toCell.addParagraph();
-            toHint.setAlignment(ParagraphAlignment.CENTER);
-            XWPFRun toHintRun = toHint.createRun();
-            toHintRun.setItalic(true);
-            toHintRun.setFontFamily(FONT_BODY);
-            toHintRun.setFontSize(9);
-            toHintRun.setText("(" + ns(e.getIssuedTo()) + ")");
-        }
 
         // Row 2: REMARKS (full width, merged)
         XWPFTableRow remarksRow = table.getRow(2);
